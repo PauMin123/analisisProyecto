@@ -1,0 +1,29 @@
+[
+    {
+        "id": "STU-1001",
+        "nombre": "Alex Rivera",
+        "email": "alex.student@english.edu",
+        "password": "$2y$10$UOJTPuT5f3lebQ38J1xlLuTBFr4asKRU7TC8xpLur3iPr4enPcdVy",
+        "nivel": "B1",
+        "telefono": "+502 5555-1234",
+        "fecha_registro": "2026-10-26 16:20:08"
+    },
+    {
+        "id": "STU-1002",
+        "nombre": "Sarah Morales",
+        "email": "sarah.learner@english.edu",
+        "password": "$2y$10$cmH3V0T9K5w6vN1FxNOWz.hHoFvcOk9KBTiUEOZWqYsExRBPb7tQO",
+        "nivel": "B2",
+        "telefono": "+502 4444-5678",
+        "fecha_registro": "2026-10-26 16:20:08"
+    },
+    {
+        "id": "STU-1003",
+        "nombre": "Carlos G\u00f3mez",
+        "email": "carlos.gomez@english.edu",
+        "password": "$2y$10$Xt5zyhjHUPgdawvoPcfqkutJ5YHmQd3a3IZPaZ1QvIH.0v3DTe3K2",
+        "nivel": "B2",
+        "telefono": "+502 1234-5678",
+        "fecha_registro": "2026-10-26 16:20:23"
+    }
+]
