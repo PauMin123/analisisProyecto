@@ -477,10 +477,120 @@ class AuthUIController {
       this.showAuthViews();
     });
 
-    // Quick Action "Agendar Nueva Lección" en Dashboard abre Pantalla 3
-    if (this.btnQuickSchedule) {
-      this.btnQuickSchedule.addEventListener('click', () => this.navigateToSchedule());
+    // --- TEMA DINÁMICO: MODO DÍA / NOCHE ---
+    const savedTheme = localStorage.getItem('emd_theme') || 'light';
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-theme');
+      this.updateThemeButton(true);
     }
+    const btnTheme = document.getElementById('btn-theme-toggle');
+    if (btnTheme) {
+      btnTheme.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('emd_theme', isDark ? 'dark' : 'light');
+        this.updateThemeButton(isDark);
+        this.showToast(isDark ? '🌙 Modo Noche Activado' : '☀️ Modo Día Activado', 'info');
+      });
+    }
+
+    // --- MODAL REGISTRO EXITOSO ---
+    const btnCloseRegSuccess = document.getElementById('btn-close-reg-success');
+    const modalRegSuccess = document.getElementById('modal-reg-success');
+    if (btnCloseRegSuccess && modalRegSuccess) {
+      btnCloseRegSuccess.addEventListener('click', () => {
+        modalRegSuccess.classList.remove('active');
+        const loginPass = document.getElementById('login-password');
+        if (loginPass) loginPass.focus();
+      });
+      modalRegSuccess.addEventListener('click', (e) => {
+        if (e.target === modalRegSuccess) {
+          modalRegSuccess.classList.remove('active');
+          const loginPass = document.getElementById('login-password');
+          if (loginPass) loginPass.focus();
+        }
+      });
+    }
+
+    // --- SÍNTESIS DE VOZ NATIVA: PRONUNCIACIÓN DE EXPRESIÓN DEL DÍA ---
+    const btnListenPhrase = document.getElementById('btn-listen-phrase');
+    if (btnListenPhrase) {
+      btnListenPhrase.addEventListener('click', () => {
+        const phraseEl = document.getElementById('daily-phrase-text');
+        const exampleEl = document.getElementById('daily-example-text');
+        const textToSpeak = `${phraseEl ? phraseEl.textContent : 'Piece of cake'}. ${exampleEl ? exampleEl.textContent : ''}`;
+        this.speakText(textToSpeak, btnListenPhrase);
+      });
+    }
+
+    // --- PASO 3: BUSCADOR Y FILTROS RÁPIDOS DE PROFESORES ---
+    const profSearchInput = document.getElementById('prof-search-input');
+    const profSearchClear = document.getElementById('prof-search-clear');
+    if (profSearchInput) {
+      profSearchInput.addEventListener('input', (e) => {
+        this.profSearchText = e.target.value;
+        if (profSearchClear) {
+          profSearchClear.style.display = this.profSearchText ? 'block' : 'none';
+        }
+        this.renderFilteredProfessors();
+      });
+    }
+    if (profSearchClear && profSearchInput) {
+      profSearchClear.addEventListener('click', () => {
+        profSearchInput.value = '';
+        this.profSearchText = '';
+        profSearchClear.style.display = 'none';
+        this.renderFilteredProfessors();
+        profSearchInput.focus();
+      });
+    }
+
+    document.querySelectorAll('.accent-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.accent-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        this.profAccentFilter = chip.getAttribute('data-filter') || 'ALL';
+        this.renderFilteredProfessors();
+      });
+    });
+  }
+
+  updateThemeButton(isDark) {
+    const icon = document.getElementById('theme-toggle-icon');
+    const label = document.querySelector('.theme-toggle-text');
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    if (label) label.textContent = isDark ? 'Modo Día' : 'Modo Noche';
+  }
+
+  speakText(text, btnEl) {
+    if (!('speechSynthesis' in window)) {
+      this.showToast('Tu navegador no soporta síntesis de voz nativa', 'warning');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/["']/g, '');
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.lang = 'en-US';
+    utter.rate = 0.9;
+    
+    if (btnEl) {
+      btnEl.style.opacity = '0.7';
+      btnEl.style.transform = 'scale(0.96)';
+    }
+
+    utter.onend = () => {
+      if (btnEl) {
+        btnEl.style.opacity = '1';
+        btnEl.style.transform = '';
+      }
+    };
+    utter.onerror = () => {
+      if (btnEl) {
+        btnEl.style.opacity = '1';
+        btnEl.style.transform = '';
+      }
+    };
+
+    window.speechSynthesis.speak(utter);
   }
 
   switchView(view) {
@@ -595,10 +705,35 @@ class AuthUIController {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Guardar sesión en el SINGLETON
-        this.sessionManager.setSession(data.student, data.token);
-        this.showToast(`¡Matrícula Asignada: ${data.matricula || data.student.matricula}!`, 'success');
-        this.renderDashboard(data.student);
+        const matricula = data.matricula || (data.student && data.student.matricula) || '';
+        const email = data.email || (data.student && data.student.email) || '';
+
+        // Limpiar inputs de registro
+        if (nombreEl) nombreEl.value = '';
+        if (passwordEl) passwordEl.value = '';
+        if (phoneEl) phoneEl.value = '';
+
+        // Volver a la vista de login (NO ingresar directamente para exigir credenciales)
+        this.switchView('login');
+
+        // Prellenar la matrícula en el formulario de login para comodidad
+        const loginEmail = document.getElementById('login-email');
+        const loginPass = document.getElementById('login-password');
+        if (loginEmail) loginEmail.value = matricula || email;
+        if (loginPass) {
+          loginPass.value = '';
+          loginPass.focus();
+        }
+
+        // Configurar y mostrar modal informativo de bienvenida
+        const regMatEl = document.getElementById('reg-success-matricula');
+        const regMailEl = document.getElementById('reg-success-email');
+        const modalRegSuccess = document.getElementById('modal-reg-success');
+        if (regMatEl) regMatEl.textContent = matricula;
+        if (regMailEl) regMailEl.textContent = email;
+        if (modalRegSuccess) modalRegSuccess.classList.add('active');
+
+        this.showToast(`¡Cuenta creada! Tu matrícula es ${matricula}. Por favor ingresa tu contraseña para iniciar sesión.`, 'success');
       } else {
         this.showToast(data.message || 'Error al registrar usuario', 'error');
       }
@@ -708,6 +843,79 @@ class AuthUIController {
           if (sp) sp.textContent = data.stats.lecciones_pendientes;
         }
 
+        // Actualizar Widgets de Gamificación en el Dashboard
+        const streakEl = document.getElementById('dash-streak-count');
+        const xpEl = document.getElementById('dash-xp-count');
+        const fluencyEl = document.getElementById('dash-fluency-percent');
+        const fluencyFill = document.getElementById('dash-fluency-fill');
+
+        const completedCount = data.stats ? data.stats.lecciones_completadas : 0;
+        const calculatedStreak = Math.max(3, completedCount + 3);
+        const calculatedXp = (completedCount * 120) + 480;
+        const fluencyVal = Math.min(95, 45 + (completedCount * 15));
+
+        if (streakEl) streakEl.textContent = calculatedStreak;
+        if (xpEl) xpEl.textContent = `${calculatedXp} XP`;
+        if (fluencyEl) fluencyEl.textContent = `${fluencyVal}% (Camino a B1)`;
+        if (fluencyFill) fluencyFill.style.width = `${fluencyVal}%`;
+
+        // Actualizar Medallas y Logros de forma reactiva
+        const bPrimerPaso = document.getElementById('badge-primer-paso');
+        const bRacha = document.getElementById('badge-racha-fuego');
+        const bBase = document.getElementById('badge-base-solida');
+        const bMaster = document.getElementById('badge-master-b2');
+        const subBase = document.getElementById('sub-base-solida');
+        const subMaster = document.getElementById('sub-master-b2');
+        const badgesCount = document.getElementById('dash-badges-count');
+
+        const totalRes = data.stats ? data.stats.total_reservas : 0;
+        const currentLevel = (data.student && data.student.nivel_actual) || student.nivel_actual || 'A1';
+
+        let activeBadges = 0;
+        if (bPrimerPaso) {
+          const unlocked = totalRes > 0 || completedCount > 0;
+          bPrimerPaso.className = unlocked ? 'badge-pill unlocked' : 'badge-pill locked';
+          if (unlocked) activeBadges++;
+        }
+        if (bRacha) {
+          const unlocked = calculatedStreak >= 3;
+          bRacha.className = unlocked ? 'badge-pill unlocked' : 'badge-pill locked';
+          if (unlocked) activeBadges++;
+        }
+        const bMadrugador = document.getElementById('badge-madrugador');
+        if (bMadrugador) {
+          activeBadges++;
+        }
+        if (bBase) {
+          bBase.className = 'badge-pill unlocked';
+          if (subBase) subBase.textContent = `Nivel ${currentLevel} activo`;
+          activeBadges++;
+        }
+        if (bMaster) {
+          const unlocked = currentLevel === 'B2' || currentLevel === 'C1' || completedCount >= 5;
+          bMaster.className = unlocked ? 'badge-pill unlocked' : 'badge-pill locked';
+          if (subMaster) subMaster.textContent = unlocked ? '¡Desbloqueado!' : 'Bloqueado';
+          if (unlocked) activeBadges++;
+        }
+        if (badgesCount) badgesCount.textContent = `${activeBadges} Activas`;
+
+        // Rotar Expresión del Día
+        const dailyPhrases = [
+          { phrase: '"Piece of cake"', meaning: 'Significa: "Algo sumamente fácil de hacer"', example: '"The English lesson was a piece of cake!"' },
+          { phrase: '"Break a leg"', meaning: 'Significa: "¡Mucha suerte! (usado antes de hablar en público)"', example: '"Break a leg in your English presentation today!"' },
+          { phrase: '"Hit the books"', meaning: 'Significa: "Ponerse a estudiar con entusiasmo"', example: '"Time to hit the books before our next lesson!"' },
+          { phrase: '"Under the weather"', meaning: 'Significa: "Sentirse un poco indispuesto o cansado"', example: '"I felt under the weather, but English cheered me up."' },
+          { phrase: '"Call it a day"', meaning: 'Significa: "Dar por terminada una jornada con satisfacción"', example: '"Great job on speaking fluency, let’s call it a day!"' }
+        ];
+        const dayIdx = new Date().getDay() % dailyPhrases.length;
+        const tip = dailyPhrases[dayIdx];
+        const phraseEl = document.getElementById('daily-phrase-text');
+        const meaningEl = document.getElementById('daily-meaning-text');
+        const exampleEl = document.getElementById('daily-example-text');
+        if (phraseEl) phraseEl.textContent = tip.phrase;
+        if (meaningEl) meaningEl.textContent = tip.meaning;
+        if (exampleEl) exampleEl.innerHTML = `<em>${tip.example}</em>`;
+
         // 2. Renderizar Próxima Lección (M01-9)
         const nextContainer = document.getElementById('dash-next-lesson-container');
         if (nextContainer) {
@@ -732,14 +940,27 @@ class AuthUIController {
                     <div class="teacher-specialty">${nl.especialidad} • ⭐ ${nl.rating}</div>
                   </div>
                 </div>
-                <a href="${nl.enlace_sesion}" target="_blank" rel="noopener noreferrer" class="btn-join-live">
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <span>Entrar a Clase en Vivo</span>
-                </a>
+                <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                  <a href="${nl.enlace_sesion}" target="_blank" rel="noopener noreferrer" class="btn-join-live" style="flex: 1; min-width: 130px;">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>Entrar a Clase</span>
+                  </a>
+                  <button type="button" class="btn-approve-featured-lesson" data-lesson-id="${nl.id}" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; padding: 10px 14px; border-radius: 14px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                    <span>🎓 Aprobar Lección</span>
+                  </button>
+                </div>
               </div>
             `;
+
+            const btnApprove = nextContainer.querySelector('.btn-approve-featured-lesson');
+            if (btnApprove) {
+              btnApprove.addEventListener('click', () => {
+                const lid = parseInt(btnApprove.getAttribute('data-lesson-id'), 10);
+                this.completeLessonAction(lid);
+              });
+            }
           } else {
             nextContainer.innerHTML = `
               <div class="empty-lesson-card">
@@ -960,10 +1181,20 @@ class AuthUIController {
           this.selectLevel(lid);
         });
       });
+
+      // Auto-selección pedagógica: continuar con A1 (o A2 si ya fue aprobado)
+      const currentStudent = this.sessionManager.getStudent();
+      const currentLevelCode = (currentStudent && (currentStudent.nivel_actual || currentStudent.nivel)) || 'A1';
+      const targetLevel = filteredLevels.find(l => (l.codigo || '').toUpperCase() === currentLevelCode.toUpperCase()) || filteredLevels[0];
+      if (targetLevel) {
+        this.selectLevel(targetLevel.id);
+      }
     }
 
     // 4. Resetear y Bloquear Paso 3
     if (this.profsLockedPlaceholder) this.profsLockedPlaceholder.style.display = 'block';
+    const filterBar = document.getElementById('profs-filter-bar');
+    if (filterBar) filterBar.style.display = 'none';
     if (this.scheduleProfsContainer) {
       this.scheduleProfsContainer.style.display = 'none';
       this.scheduleProfsContainer.innerHTML = '';
@@ -1011,6 +1242,9 @@ class AuthUIController {
 
     // 3. Desbloquear y Renderizar Paso 3 (Profesores en Cascada - M01-12)
     if (this.profsLockedPlaceholder) this.profsLockedPlaceholder.style.display = 'none';
+    const filterBar = document.getElementById('profs-filter-bar');
+    if (filterBar) filterBar.style.display = 'block';
+
     if (this.scheduleProfsContainer) {
       this.scheduleProfsContainer.style.display = 'flex';
 
@@ -1021,41 +1255,8 @@ class AuthUIController {
         filteredProfs = data.profesores; // Fallback resiliente
       }
 
-      this.scheduleProfsContainer.innerHTML = filteredProfs.map(prof => {
-        const initials = prof.nombre
-          .split(' ')
-          .filter(Boolean)
-          .slice(-2)
-          .map(w => w[0])
-          .join('')
-          .toUpperCase() || 'PR';
-
-        return `
-          <div class="prof-select-card" data-prof-id="${prof.id}" id="prof-opt-${prof.id}">
-            <div class="prof-card-main-row">
-              <div class="prof-avatar-circle">${initials}</div>
-              <div class="prof-card-info">
-                <div class="prof-name-row">
-                  <span class="prof-name">${prof.nombre}</span>
-                  <span class="prof-rating-badge">★ ${prof.rating.toFixed(2)}</span>
-                </div>
-                <div class="prof-specialty">${prof.especialidad}</div>
-              </div>
-              <div class="radio-check-indicator"></div>
-            </div>
-            <div class="prof-bio">
-              "${prof.biografia}"
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      this.scheduleProfsContainer.querySelectorAll('.prof-select-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const pid = parseInt(card.getAttribute('data-prof-id'), 10);
-          this.selectProfessor(pid);
-        });
-      });
+      this.activeCourseProfs = filteredProfs;
+      this.renderFilteredProfessors();
     }
 
     if (this.scheduleSummaryBar) this.scheduleSummaryBar.style.display = 'none';
@@ -1063,6 +1264,106 @@ class AuthUIController {
     // Desplazar suavemente hacia el Paso 3
     const sec3 = document.getElementById('section-step-3');
     if (sec3) sec3.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  renderFilteredProfessors() {
+    if (!this.scheduleProfsContainer || !this.activeCourseProfs) return;
+
+    const query = (this.profSearchText || '').toLowerCase().trim();
+    const accentFilter = this.profAccentFilter || 'ALL';
+
+    const list = this.activeCourseProfs.filter(prof => {
+      // 1. Filtro por texto en vivo
+      if (query) {
+        const matchName = (prof.nombre || '').toLowerCase().includes(query);
+        const matchSpec = (prof.especialidad || '').toLowerCase().includes(query);
+        const matchBio = (prof.biografia || '').toLowerCase().includes(query);
+        const matchAcc = (prof.acento || '').toLowerCase().includes(query);
+        if (!matchName && !matchSpec && !matchBio && !matchAcc) return false;
+      }
+
+      // 2. Filtro rápido de acento o rating
+      if (accentFilter === 'BRITISH') {
+        return (prof.acento || '').toLowerCase().includes('brit');
+      } else if (accentFilter === 'AMERICAN') {
+        return (prof.acento || '').toLowerCase().includes('amer');
+      } else if (accentFilter === 'CANADIAN') {
+        return (prof.acento || '').toLowerCase().includes('canad');
+      } else if (accentFilter === 'TOP_RATED') {
+        return parseFloat(prof.rating) >= 4.95;
+      }
+
+      return true;
+    });
+
+    if (list.length === 0) {
+      this.scheduleProfsContainer.innerHTML = `
+        <div style="text-align: center; padding: 26px 14px; width: 100%; background: rgba(255,255,255,0.7); border: 1.5px dashed rgba(2, 132, 199, 0.35); border-radius: 18px;">
+          <div style="font-size: 1.8rem; margin-bottom: 6px;">🔍</div>
+          <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No se encontraron profesores</div>
+          <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 12px;">Prueba con otro término de búsqueda o cambia el filtro de acento.</div>
+          <button type="button" id="btn-reset-profs-filter" class="btn-cancel-keep" style="padding: 8px 16px; font-size: 0.78rem;">
+            Restablecer Filtros
+          </button>
+        </div>
+      `;
+      const btnReset = document.getElementById('btn-reset-profs-filter');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => {
+          this.profSearchText = '';
+          this.profAccentFilter = 'ALL';
+          const input = document.getElementById('prof-search-input');
+          const clear = document.getElementById('prof-search-clear');
+          if (input) input.value = '';
+          if (clear) clear.style.display = 'none';
+          document.querySelectorAll('.accent-chip').forEach(c => {
+            c.classList.toggle('active', c.getAttribute('data-filter') === 'ALL');
+          });
+          this.renderFilteredProfessors();
+        });
+      }
+      return;
+    }
+
+    this.scheduleProfsContainer.innerHTML = list.map(prof => {
+      const initials = prof.nombre
+        .split(' ')
+        .filter(Boolean)
+        .slice(-2)
+        .map(w => w[0])
+        .join('')
+        .toUpperCase() || 'PR';
+
+      const acentoTag = prof.acento || 'Acento Internacional';
+      const isSelected = this.bookingState.selectedProf && this.bookingState.selectedProf.id === prof.id;
+
+      return `
+        <div class="prof-select-card ${isSelected ? 'selected' : ''}" data-prof-id="${prof.id}" id="prof-opt-${prof.id}">
+          <div class="prof-card-main-row">
+            <div class="prof-avatar-circle">${initials}</div>
+            <div class="prof-card-info">
+              <div class="prof-name-row">
+                <span class="prof-name">${prof.nombre}</span>
+                <span class="prof-rating-badge">★ ${parseFloat(prof.rating).toFixed(2)}</span>
+              </div>
+              <div class="prof-specialty">${prof.especialidad}</div>
+              <div><span class="badge-prof-accent">${acentoTag}</span></div>
+            </div>
+            <div class="radio-check-indicator"></div>
+          </div>
+          <div class="prof-bio">
+            "${prof.biografia}"
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    this.scheduleProfsContainer.querySelectorAll('.prof-select-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const pid = parseInt(card.getAttribute('data-prof-id'), 10);
+        this.selectProfessor(pid);
+      });
+    });
   }
 
   selectProfessor(profId) {
@@ -1610,6 +1911,9 @@ class AuthUIController {
                   </svg>
                   <span>Entrar a Clase</span>
                 </a>
+                <button type="button" class="btn-approve-lesson-trigger" data-lesson-id="${l.id}" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; padding: 7px 12px; border-radius: 10px; font-weight: 700; font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <span>🎓 Aprobar</span>
+                </button>
                 <button type="button" class="btn-cancel-lesson-trigger" data-cancel-id="${l.id}">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1620,6 +1924,14 @@ class AuthUIController {
             </div>
           `;
         }).join('');
+
+        // Wire approve triggers
+        this.panelLessonsUpcoming.querySelectorAll('.btn-approve-lesson-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const lid = parseInt(btn.getAttribute('data-lesson-id'), 10);
+            this.completeLessonAction(lid);
+          });
+        });
 
         // Wire cancel triggers
         this.panelLessonsUpcoming.querySelectorAll('.btn-cancel-lesson-trigger').forEach(btn => {
@@ -1726,6 +2038,55 @@ class AuthUIController {
       this.showToast('Error de conexión al cancelar lección', 'error');
     } finally {
       this.setButtonLoading(this.btnConfirmCancelLesson, false, 'Sí, Cancelar Lección y Liberar Horario');
+    }
+  }
+
+  /**
+   * Aprueba y completa una lección (Progresión pedagógica A1 -> A2)
+   */
+  async completeLessonAction(lessonId) {
+    if (!lessonId) return;
+
+    const student = this.sessionManager.getStudent();
+    const currentNivel = (student && (student.nivel_actual || student.nivel)) || 'A1';
+
+    const confirmed = confirm(`¿Deseas marcar esta lección de Nivel ${currentNivel} como Aprobada/Completada?`);
+    if (!confirmed) return;
+
+    try {
+      this.showToast('Registrando lección aprobada...', 'info');
+      const res = await fetch(this.lessonsUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'complete',
+          lesson_id: lessonId,
+          student_id: student ? (student.id || 1) : 1
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        if (student && data.new_level) {
+          student.nivel_actual = data.new_level;
+          this.sessionManager.setSession(student, this.sessionManager.getToken());
+        }
+
+        // Mostrar notificación de logro
+        this.showToast(data.message, 'success');
+
+        // Recargar datos actualizados
+        if (student) {
+          await this.renderDashboard(student);
+        }
+        await this.loadStudentLessons();
+      } else {
+        this.showToast(data.message || 'Error al completar la lección', 'error');
+      }
+    } catch (err) {
+      console.error("Error al completar lección:", err);
+      this.showToast('Error de conexión al completar la lección', 'error');
     }
   }
 

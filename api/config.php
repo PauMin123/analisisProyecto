@@ -11,14 +11,21 @@ class DatabaseConnection {
     private static ?DatabaseConnection $instance = null;
     private ?PDO $connection = null;
 
-    private string $host = '127.0.0.1';
-    private string $db   = 'ingles';
-    private string $user = 'root';
-    private string $pass = '';
+    private string $host;
+    private string $db;
+    private string $user;
+    private string $pass;
+    private string $port;
     private string $charset = 'utf8mb4';
 
     private function __construct() {
-        $dsn = "mysql:host={$this->host};dbname={$this->db};charset={$this->charset}";
+        $this->host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: '127.0.0.1';
+        $this->db   = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: ($_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: 'ingles');
+        $this->user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: ($_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: 'root');
+        $this->pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: ($_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '');
+        $this->port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
+
+        $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db};charset={$this->charset}";
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

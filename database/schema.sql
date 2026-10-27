@@ -69,6 +69,7 @@ CREATE TABLE `profesores` (
   `nombre` VARCHAR(120) NOT NULL,
   `email` VARCHAR(150) NOT NULL UNIQUE,
   `especialidad` VARCHAR(120) NOT NULL,
+  `acento` VARCHAR(50) DEFAULT 'Americano',
   `biografia` TEXT NULL,
   `avatar_url` VARCHAR(255) NULL,
   `rating` DECIMAL(3,2) DEFAULT 4.90,
@@ -157,11 +158,11 @@ INSERT INTO `niveles` (`id`, `curso_id`, `codigo`, `nombre`, `descripcion`) VALU
 (12, 4, 'B2', 'Debate Club B2', 'Conversación espontánea y fluidez auditiva.');
 
 -- Profesores
-INSERT INTO `profesores` (`id`, `uuid`, `nombre`, `email`, `especialidad`, `biografia`, `rating`) VALUES
-(1, 'PROF-2001', 'Prof. David Miller', 'david.miller@english.edu', 'Cambridge Certified & Gramática Avanzada', 'Más de 10 años preparando estudiantes internacionales con metodología activa.', 4.96),
-(2, 'PROF-2002', 'Prof. Emma Watson', 'emma.watson@english.edu', 'Business English & Entrevistas Corporativas', 'Consultora de comunicación en multinacionales y coach de oratoria ejecutiva.', 4.98),
-(3, 'PROF-2003', 'Prof. Michael Brown', 'michael.brown@english.edu', 'Examinador Oficial IELTS / TOEFL', 'Especialista en bandas altas y corrección analítica de ensayos y speaking.', 4.92),
-(4, 'PROF-2004', 'Prof. Sophia Chen', 'sophia.chen@english.edu', 'Pronunciación & Fonética Americana', 'Lingüista aplicada enfocada en neutralización de acento y soltura auditiva.', 4.89);
+INSERT INTO `profesores` (`id`, `uuid`, `nombre`, `email`, `especialidad`, `acento`, `biografia`, `rating`) VALUES
+(1, 'PROF-2001', 'Prof. David Miller', 'david.miller@english.edu', 'Cambridge Certified & Gramática Avanzada', 'Británico (Oxford / UK)', 'Más de 10 años preparando estudiantes internacionales con metodología activa.', 4.96),
+(2, 'PROF-2002', 'Prof. Emma Watson', 'emma.watson@english.edu', 'Business English & Entrevistas Corporativas', 'Británico (Londres / UK)', 'Consultora de comunicación en multinacionales y coach de oratoria ejecutiva.', 4.98),
+(3, 'PROF-2003', 'Prof. Michael Brown', 'michael.brown@english.edu', 'Examinador Oficial IELTS / TOEFL', 'Canadiense / Neutro', 'Especialista en bandas altas y corrección analítica de ensayos y speaking.', 4.92),
+(4, 'PROF-2004', 'Prof. Sophia Chen', 'sophia.chen@english.edu', 'Pronunciación & Fonética Americana', 'Americano (USA Nativo)', 'Lingüista aplicada enfocada en neutralización de acento y soltura auditiva.', 4.89);
 
 -- Relación Profesor - Cursos
 INSERT INTO `profesor_cursos` (`profesor_id`, `curso_id`) VALUES

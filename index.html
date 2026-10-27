@@ -14,6 +14,14 @@
 </head>
 <body>
 
+  <!-- Floating Theme Toggle (Modo Día / Noche) -->
+  <aside class="floating-theme-wrap">
+    <button type="button" id="btn-theme-toggle" class="btn-theme-floating" title="Alternar Modo Oscuro / Modo Claro" aria-label="Cambiar tema de la aplicación">
+      <span id="theme-toggle-icon">🌙</span>
+      <span class="theme-toggle-text">Modo Noche</span>
+    </button>
+  </aside>
+
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
@@ -208,6 +216,110 @@
         </div>
       </div>
 
+      <!-- WIDGET DE GAMIFICACIÓN: RACHA DE ESTUDIO & FLUIDEZ -->
+      <div class="gamification-card">
+        <div class="streak-header-row">
+          <div class="streak-badge-main">
+            <span class="streak-flame">🔥</span>
+            <div>
+              <div class="streak-title"><strong id="dash-streak-count">5</strong> Días de Racha Activa</div>
+              <div class="streak-sub">¡Estás imparable! Sigue practicando hoy</div>
+            </div>
+          </div>
+          <div class="xp-badge">
+            <span class="xp-star">⚡</span>
+            <span id="dash-xp-count">480 XP</span>
+          </div>
+        </div>
+
+        <!-- Tira de los 7 días de la semana -->
+        <div class="streak-days-track">
+          <div class="day-dot done" title="Lunes completado"><span>L</span><span class="check">✓</span></div>
+          <div class="day-dot done" title="Martes completado"><span>M</span><span class="check">✓</span></div>
+          <div class="day-dot done" title="Miércoles completado"><span>M</span><span class="check">✓</span></div>
+          <div class="day-dot done" title="Jueves completado"><span>J</span><span class="check">✓</span></div>
+          <div class="day-dot done active" title="Viernes completado hoy"><span>V</span><span class="check">🔥</span></div>
+          <div class="day-dot pending" title="Sábado pendiente"><span>S</span></div>
+          <div class="day-dot pending" title="Domingo pendiente"><span>D</span></div>
+        </div>
+
+        <!-- Barra de Nivel de Fluidez -->
+        <div class="fluency-bar-section">
+          <div class="fluency-meta">
+            <span>Nivel de Fluidez Práctica</span>
+            <strong id="dash-fluency-percent">68% (Rumbo a B1)</strong>
+          </div>
+          <div class="fluency-track">
+            <div class="fluency-fill" id="dash-fluency-fill" style="width: 68%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORD OF THE DAY & DAILY ENGLISH TIP (CON PRONUNCIACIÓN DE AUDIO NATIVO) -->
+      <div class="daily-tip-card">
+        <div class="daily-tip-badge">
+          <span>💡</span>
+          <span>Expresión del Día</span>
+        </div>
+        <div class="daily-phrase-row">
+          <div class="daily-phrase-content">
+            <h4 class="daily-phrase" id="daily-phrase-text">"Piece of cake"</h4>
+            <div class="daily-meaning" id="daily-meaning-text">Significa: "Algo sumamente fácil de hacer"</div>
+            <div class="daily-example" id="daily-example-text"><em>"The English lesson was a piece of cake!"</em></div>
+          </div>
+          <button type="button" id="btn-listen-phrase" class="btn-listen-audio" title="Escuchar pronunciación nativa">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+            <span>Audio</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- INSIGNIAS DESBLOQUEADAS (BADGES) -->
+      <div class="section-title-row" style="margin-top: 20px;">
+        <h4 class="section-heading">Tus Medallas y Logros</h4>
+        <span id="dash-badges-count" style="font-size: 0.72rem; color: #0284c7; font-weight: 700;">4 Activas</span>
+      </div>
+
+      <div class="badges-scroll-row" id="dash-badges-scroll-row">
+        <div class="badge-pill unlocked" id="badge-primer-paso" title="Primera Lección Reservada">
+          <span class="badge-icon">🎯</span>
+          <div class="badge-text">
+            <strong>Primer Paso</strong>
+            <small id="sub-primer-paso">Clase reservada</small>
+          </div>
+        </div>
+        <div class="badge-pill unlocked" id="badge-racha-fuego" title="5 Días Seguidos de Estudio">
+          <span class="badge-icon">🔥</span>
+          <div class="badge-text">
+            <strong>Racha de Fuego</strong>
+            <small id="sub-racha-fuego">5 días seguidos</small>
+          </div>
+        </div>
+        <div class="badge-pill unlocked" id="badge-madrugador" title="Clase Matutina Agendada">
+          <span class="badge-icon">🌅</span>
+          <div class="badge-text">
+            <strong>Madrugador</strong>
+            <small id="sub-madrugador">Turno mañana</small>
+          </div>
+        </div>
+        <div class="badge-pill unlocked" id="badge-base-solida" title="Nivel A1 en curso">
+          <span class="badge-icon">🏆</span>
+          <div class="badge-text">
+            <strong id="title-base-solida">Base Sólida</strong>
+            <small id="sub-base-solida">Nivel A1 activo</small>
+          </div>
+        </div>
+        <div class="badge-pill locked" id="badge-master-b2" title="Completa lecciones para desbloquear">
+          <span class="badge-icon">💎</span>
+          <div class="badge-text">
+            <strong>Master B2</strong>
+            <small id="sub-master-b2">Bloqueado</small>
+          </div>
+        </div>
+      </div>
+
       <!-- M01-9: Próxima Lección Programada (Featured Next Lesson Card) -->
       <div class="section-title-row">
         <h4 class="section-heading">Próxima Lección</h4>
@@ -330,6 +442,25 @@
           <div class="cascade-locked-icon">🔒</div>
           <div class="cascade-locked-text">
             Selecciona un <strong>Nivel</strong> en el Paso 2 para ver los profesores certificados para este contenido.
+          </div>
+        </div>
+
+        <!-- Buscador y Filtro Rápido de Profesores (Acentos, Rating, Búsqueda en Vivo) -->
+        <div class="profs-filter-bar" id="profs-filter-bar" style="display: none;">
+          <div class="profs-search-wrapper">
+            <svg class="field-icon search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="prof-search-input" class="prof-search-input" placeholder="Buscar tutor por nombre o especialidad...">
+            <button type="button" id="prof-search-clear" class="prof-search-clear" style="display: none;" title="Limpiar búsqueda">✕</button>
+          </div>
+
+          <div class="profs-chips-scroll" role="toolbar" aria-label="Filtro rápido por acento y rating">
+            <button type="button" class="accent-chip active" data-filter="ALL">🌍 Todos</button>
+            <button type="button" class="accent-chip" data-filter="BRITISH">🇬🇧 Británico</button>
+            <button type="button" class="accent-chip" data-filter="AMERICAN">🇺🇸 Americano</button>
+            <button type="button" class="accent-chip" data-filter="CANADIAN">🇨🇦 Canadiense</button>
+            <button type="button" class="accent-chip rating-chip" data-filter="TOP_RATED">⭐ ★ 4.95+</button>
           </div>
         </div>
 
@@ -634,6 +765,49 @@
         </div>
       </div>
 
+      <!-- SECCIÓN GAMIFICACIÓN EN PERFIL: LOGROS & INSIGNIAS -->
+      <div class="profile-achievements-card">
+        <div class="achievements-header">
+          <div class="achievements-title">
+            <span>🏆</span>
+            <span>Insignias de Desempeño</span>
+          </div>
+          <span class="achievements-count">4 de 6 Activas</span>
+        </div>
+        <div class="achievements-grid">
+          <div class="achievement-item unlocked">
+            <div class="ach-icon">🎯</div>
+            <div class="ach-name">Primera Clase</div>
+            <div class="ach-date">Desbloqueado</div>
+          </div>
+          <div class="achievement-item unlocked">
+            <div class="ach-icon">🔥</div>
+            <div class="ach-name">Racha de 5 Días</div>
+            <div class="ach-date">Imparable</div>
+          </div>
+          <div class="achievement-item unlocked">
+            <div class="ach-icon">🌅</div>
+            <div class="ach-name">Madrugador</div>
+            <div class="ach-date">Clase Matutina</div>
+          </div>
+          <div class="achievement-item unlocked">
+            <div class="ach-icon">⭐</div>
+            <div class="ach-name">Nivel A1 Iniciado</div>
+            <div class="ach-date">Certificado</div>
+          </div>
+          <div class="achievement-item locked">
+            <div class="ach-icon">🚀</div>
+            <div class="ach-name">Explorador Global</div>
+            <div class="ach-date">Prueba 3 Acentos</div>
+          </div>
+          <div class="achievement-item locked">
+            <div class="ach-icon">👑</div>
+            <div class="ach-name">Maestro B2</div>
+            <div class="ach-date">Por Alcanzar</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Formulario de Edición de Datos Personales -->
       <div class="profile-form-section">
         <h4 class="profile-section-title">
@@ -904,6 +1078,28 @@
     </button>
   </aside>
 
+  <!-- MODAL: REGISTRO EXITOSO & CREDENCIALES ASIGNADAS -->
+  <aside id="modal-reg-success" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="reg-success-title">
+    <div class="modal-card" style="text-align: center;">
+      <div style="font-size: 2.8rem; margin-bottom: 8px;">🎉</div>
+      <h3 id="reg-success-title" class="modal-title" style="margin-bottom: 6px; color: #0284c7;">¡Cuenta Institucional Creada!</h3>
+      <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin-bottom: 16px;">
+        Tu registro en <strong>EnglishMadeForDummies</strong> ha sido procesado. Por seguridad, ingresa tu contraseña para iniciar sesión.
+      </p>
+
+      <div style="background: rgba(2, 132, 199, 0.08); border: 1.5px solid rgba(2, 132, 199, 0.25); border-radius: 16px; padding: 14px; margin-bottom: 18px; text-align: left; font-size: 0.82rem; line-height: 1.6;">
+        <div>🎓 <strong>Matrícula Asignada:</strong> <code id="reg-success-matricula" style="font-weight: 800; color: #0284c7; font-size: 0.95rem;">EMD-2026-XXXX</code></div>
+        <div>📧 <strong>Correo Institucional:</strong> <code id="reg-success-email" style="color: #334155;">estudiante@englishmade.edu</code></div>
+        <div>📘 <strong>Nivel Inicial:</strong> <span style="font-weight: 700; color: #059669;">A1 (Principiante)</span></div>
+      </div>
+
+      <button type="button" id="btn-close-reg-success" class="btn-get-started" style="margin-top: 4px;">
+        <span>Continuar a Iniciar Sesión</span>
+        <span style="font-size: 1.05rem;">➔</span>
+      </button>
+    </div>
+  </aside>
+
   <!-- MODAL DE CONEXIÓN MÓVIL (QR & ENLACES) -->
   <aside id="modal-qr" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="qr-title">
     <div class="modal-card" style="text-align: center;">
@@ -916,11 +1112,11 @@
       </p>
       
       <div style="background: #ffffff; padding: 14px; border-radius: 18px; display: inline-block; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); border: 1px solid rgba(226, 232, 240, 0.8);">
-        <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://192.9.200.51/proyectoanalisis/" alt="Código QR para celular" style="width: 180px; height: 180px; display: block;">
+        <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://192.9.200.35/proyectoanalisis/" alt="Código QR para celular" style="width: 180px; height: 180px; display: block;">
       </div>
 
       <div style="background: rgba(240, 244, 255, 0.95); border: 1px solid rgba(219, 234, 254, 0.9); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-family: monospace; font-size: 0.84rem; color: #0284c7; word-break: break-all; font-weight: 700;">
-        http://192.9.200.51/proyectoanalisis/
+        http://192.9.200.35/proyectoanalisis/
       </div>
 
       <p style="font-size: 0.78rem; color: #64748b; line-height: 1.4;">
